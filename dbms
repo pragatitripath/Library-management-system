@@ -1,0 +1,101 @@
+Adding a New Book:
+
+
+INSERT INTO Books (Title, Author, Genre, Publisher, Year, CopiesAvailable)
+VALUES ('The Great Gatsby', 'F. Scott Fitzgerald', 'Fiction', 'Scribner', 1925, 5);
+
+Registering a New Member:
+
+
+INSERT INTO Members (Name, Address, Phone, Email, MembershipDate)
+VALUES ('John Doe', '123 Main St', '555-1234', 'john.doe@example.com', CURDATE());
+
+Checking Out a Book:
+
+When a member checks out a book, you need to insert a record into the Loans table and decrement the CopiesAvailable in the Books table.
+
+
+BEGIN;
+
+INSERT INTO Loans (BookID, MemberID, IssueDate, DueDate)
+VALUES (1, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 14 DAY));
+
+UPDATE Books
+SET CopiesAvailable = CopiesAvailable - 1
+WHERE BookID = 1;
+
+COMMIT;
+
+Returning a Book:
+
+When a member returns a book, update the Loans table to set the ReturnDate and increment the CopiesAvailable in the Books table.
+
+
+BEGIN;
+
+UPDATE Loans
+SET ReturnDate = CURDATE()
+WHERE LoanID = 1;
+
+UPDATE Books
+SET CopiesAvailable = CopiesAvailable + 1
+WHERE BookID = (SELECT BookID FROM Loans WHERE LoanID = 1);
+
+COMMIT;
+
+Listing All Books:
+
+
+SELECT * FROM Books;
+
+Finding Books by a Specific Author:
+
+
+SELECT * FROM Books
+WHERE Author = 'F. Scott Fitzgerald';
+
+Listing All Members:
+
+
+SELECT * FROM Members;
+
+Checking Which Books Are Currently Checked Out:
+
+
+SELECT b.Title, m.Name, l.IssueDate, l.DueDate
+FROM Loans l
+JOIN Books b ON l.BookID = b.BookID
+JOIN Members m ON l.MemberID = m.MemberID
+WHERE l.ReturnDate IS NULL;
+
+Finding Overdue Books:
+
+
+SELECT b.Title, m.Name, l.IssueDate, l.DueDate
+FROM Loans l
+JOIN Books b ON l.BookID = b.BookID
+JOIN Members m ON l.MemberID = m.MemberID
+WHERE l.ReturnDate IS NULL AND l.DueDate < CURDATE();
+
+Counting the Number of Books by Genre:
+
+
+SELECT Genre, COUNT(*) AS NumberOfBooks
+FROM Books
+GROUP BY Genre;
+
+Deleting a Member:
+
+Before deleting a member, ensure they have returned all checked-out books.
+
+
+DELETE FROM Members
+WHERE MemberID = 1;
+
+Deleting a Book:
+
+Before deleting a book, ensure all loans for that book are resolved.
+
+
+DELETE FROM Books:
+WHERE BookID = 1;
